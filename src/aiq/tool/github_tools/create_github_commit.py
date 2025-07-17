@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from pydantic import BaseModel
-from pydantic import Field
+from pydantic import Field, AliasChoices
 
 from aiq.builder.builder import Builder
 from aiq.builder.function_info import FunctionInfo
@@ -23,16 +23,28 @@ from aiq.data_models.function import FunctionBaseConfig
 
 
 class GithubCommitCodeModel(BaseModel):
-    branch: str = Field(description="The branch of the remote repo to which the code will be committed")
-    commit_msg: str = Field(description="Message with which the code will be committed to the remote repo")
-    local_path: str = Field(description="Local filepath of the file that has been updated and "
-                            "needs to be committed to the remote repo")
-    remote_path: str = Field(description="Remote filepath of the updated file in GitHub. Path is relative to "
-                             "root of current repository")
+    # MODIFIED: Added a default value
+    branch: str = Field(default="main", description="The branch of the remote repo to which the code will be committed")
+    
+    # MODIFIED: Added a default value
+    commit_msg: str = Field(default="feat: update file via agent", description="Message with which the code will be committed to the remote repo")
+    
+    # MODIFIED: Use AliasChoices to accept either name
+    local_path: str = Field(
+        validation_alias=AliasChoices("local_path", "filepath"), 
+        description="Local filepath of the file that has been updated and "
+                    "needs to be committed to the remote repo"
+    )
+    
+    # MODIFIED: Made the field optional with a default of None
+    remote_path: str | None = Field(default=None, description="Remote filepath of the updated file in GitHub. Path is relative to "
+                                      "root of current repository. If not provided, defaults to local_path.")
 
 
 class GithubCommitCodeModelList(BaseModel):
-    updated_files: list[GithubCommitCodeModel] = Field(description=("A list of local filepaths and commit messages"))
+    # MODIFIED: Updated description to reflect the new field names
+    updated_files: list[GithubCommitCodeModel] = Field(description=("A list of files to commit. Each file can specify a "
+                                                                    "branch, commit_msg, local_path, and remote_path."))
 
 
 class GithubCommitCodeConfig(FunctionBaseConfig, name="github_commit_code_tool"):
@@ -62,18 +74,30 @@ async def commit_code_async(config: GithubCommitCodeConfig, builder: Builder):
     # define the headers for the payload request
     headers = {"Authorization": f"Bearer {github_pat}", "Accept": "application/vnd.github+json"}
 
-    async def _github_commit_code(updated_files) -> list:
+    async def _github_commit_code(model: GithubCommitCodeModelList) -> list:
+        """
+        Commits one or more files to a specified branch in a GitHub repository.
+
+        Args:
+            updated_files (list[GithubCommitCodeModel]): A list of files to commit. Each item must be a dictionary.
+            The agent should provide 'filepath' (the local path).
+            Optional keys include 'branch', 'commit_msg', and 'remote_path'.
+        """
         results = []
         async with httpx.AsyncClient(timeout=config.timeout) as client:
-            for file_ in updated_files:
+            for file_ in model.updated_files:
                 branch = file_.branch
                 commit_msg = file_.commit_msg
                 local_path = file_.local_path
                 remote_path = file_.remote_path
 
+                # ADDED: Logic to handle default remote_path
+                if remote_path is None:
+                    remote_path = local_path
+
                 # Read content from the local file
-                local_path = os.path.join(config.local_repo_dir, local_path)
-                with open(local_path, 'r', encoding='utf-8', errors='ignore') as f:
+                full_local_path = os.path.join(config.local_repo_dir, local_path)
+                with open(full_local_path, 'r', encoding='utf-8', errors='ignore') as f:
                     content = f.read()
 
                 # Step 1. Create a blob with the updated contents of the file
