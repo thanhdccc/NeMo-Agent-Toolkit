@@ -1,0 +1,96 @@
+general:
+  use_uvloop: true
+
+functions:
+  mcp_tool_compute_current_date:
+    _type: mcp_tool_wrapper
+    url: "http://localhost:9901/sse"
+    mcp_tool_name: compute_current_date
+  mcp_tool_compute_yesterday:
+    _type: mcp_tool_wrapper
+    url: "http://localhost:9901/sse"
+    mcp_tool_name: compute_yesterday
+  mcp_tool_retrieve_report_by_date:
+    _type: mcp_tool_wrapper
+    url: "http://localhost:9901/sse"
+    mcp_tool_name: retrieve_report_by_date
+  mcp_tool_retrieve_report_by_date_range:
+    _type: mcp_tool_wrapper
+    url: "http://localhost:9901/sse"
+    mcp_tool_name: retrieve_report_by_date_range
+  mcp_tool_code_execution:
+    _type: mcp_tool_wrapper
+    url: "http://localhost:9901/sse"
+    mcp_tool_name: code_execution
+  github_commit_code_tool:
+    _type: github_commit_code_tool
+    repo_name: thanhdccc/ai_agents_demo
+    local_repo_dir: /home/ubuntu/Documents/ai_agents_demo/
+  github_create_pull_tool:
+    _type: github_create_pull_tool
+    repo_name: thanhdccc/ai_agents_demo
+
+llms:
+  vllm_llm_gemma3_4b_it:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: google/gemma-3-4b-it
+    temperature: 0.3
+    max_tokens: 4096
+  vllm_llm_deepseek_r1_Qwen3_8B:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
+    temperature: 0.3
+    max_tokens: 4096
+
+workflow:
+  _type: react_agent
+  tool_names:
+    - mcp_tool_compute_current_date
+    - mcp_tool_compute_yesterday
+    - mcp_tool_retrieve_report_by_date
+    - mcp_tool_retrieve_report_by_date_range
+    - mcp_tool_code_execution
+    - github_commit_code_tool
+    - github_create_pull_tool
+  llm_name: vllm_llm_gemma3_4b_it
+  verbose: true
+  retry_parsing_errors: true
+  max_retries: 3
+  system_prompt: |
+    You are an intelligent assistant that can ask the user to invoke predefined tools. You must follow the instructions below precisely.
+
+    1. Reasoning Process
+    When you need to use a tool, you MUST use the following format:
+
+    Question: <the user's original question>
+    Thought: <your step-by-step reasoning about which tool to use and why.>
+    Action: <the name of the tool to use, which must be one of [{tool_names}]>
+    Action Input: <the JSON input for the tool, following the critical rules below>
+
+    2. CRITICAL: Formatting Rules for Action Input
+    The Action Input is the most important part. It MUST strictly follow these rules:
+    - The entire input must be a single, valid JSON object.
+    - All keys and all string values MUST be enclosed in double quotes ("). Single quotes are forbidden.
+    - **All special characters within strings, especially newlines, MUST be properly escaped. A newline character must be written as `\n`.**
+    - For tools that do not require input, use the string "None".
+
+    3. Example of a Correct Tool Call
+    Here is a perfect example of how to format your response when using a tool. This example correctly uses double quotes and escapes the newline characters (`\n`).
+
+    Question: how do I reverse a string in python?
+    Thought: The user wants to execute a simple Python command. I can use the mcp_tool_code_execution tool to demonstrate how to reverse a string. I will provide the code and then the tool will execute it.
+    Action: mcp_tool_code_execution
+    Action Input: {{"generated_code": "my_string = 'hello world'\\nreversed_string = my_string[::-1]\\nprint(reversed_string)"}}
+
+    4. Final Answer
+    After you have used tools and received observations, or if you don't need a tool, you must conclude with your final answer to the user in this format:
+
+    Thought: I now have the final answer.
+    Final Answer: <your final answer to the user's original question>
+
+    Available Tools:
+    {tools}

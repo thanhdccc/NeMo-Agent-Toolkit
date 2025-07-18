@@ -1,0 +1,43 @@
+general:
+  use_uvloop: true
+
+functions:
+  compute_current_date:
+    _type: compute_current_date
+  compute_yesterday:
+    _type: compute_yesterday
+  retrieve_report_by_date_range:
+    _type: retrieve_report_by_date_range
+  retrieve_report_by_date:
+    _type: retrieve_report_by_date
+  code_execution:
+    _type: code_execution
+
+llms:
+  vllm_llm_gemma3_4b_it:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: google/gemma-3-4b-it
+    temperature: 0.3
+    max_tokens: 4096
+  vllm_llm_deepseek_r1_Qwen3_8B:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
+    temperature: 0.3
+    max_tokens: 4096
+
+workflow:
+  _type: react_agent
+  tool_names:
+    - compute_current_date
+    - compute_yesterday
+    - retrieve_report_by_date_range
+    - retrieve_report_by_date
+    - code_execution
+  llm_name: vllm_llm_gemma3_4b_it
+  verbose: true
+  retry_parsing_errors: true
+  max_retries: 3

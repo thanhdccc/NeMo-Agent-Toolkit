@@ -1,0 +1,44 @@
+general:
+  use_uvloop: true
+
+functions:
+  compute_current_date:
+    _type: compute_current_date
+  compute_yesterday:
+    _type: compute_yesterday
+  query_report_by_date:
+    _type: query_report_by_date
+
+llms:
+  vllm_llm_phi4_mini_instruct:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: microsoft/Phi-4-mini-instruct
+    temperature: 0.3
+    max_tokens: 4096
+  vllm_llm_phi4_mini_reasoning:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: microsoft/Phi-4-mini-reasoning
+    temperature: 0.3
+    max_tokens: 4096
+  vllm_llm_gemma3_4b_it:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: google/gemma-3-4b-it
+    temperature: 0.3
+    max_tokens: 4096
+
+workflow:
+  _type: react_agent
+  tool_names:
+    - compute_current_date
+    - compute_yesterday
+    - query_report_by_date
+  llm_name: vllm_llm_phi4_mini_instruct
+  verbose: true
+  retry_parsing_errors: true
+  max_retries: 3

@@ -1,0 +1,53 @@
+general:
+  use_uvloop: true
+
+functions:
+  compute_current_date:
+    _type: compute_current_date
+  compute_yesterday:
+    _type: compute_yesterday
+  query_report_by_date:
+    _type: query_report_by_date
+  react_agent:
+    _type: react_agent
+    tool_names:
+      - compute_current_date
+      - compute_yesterday
+      - query_report_by_date
+    llm_name: nim_llm
+    verbose: true
+    handle_parsing_errors: true
+    max_retries: 3
+
+llms:
+  vllm_llm_phi4_mini_instruct:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: microsoft/Phi-4-mini-instruct
+    temperature: 0.3
+    max_tokens: 4096
+  vllm_llm_phi4_mini_reasoning:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: microsoft/Phi-4-mini-reasoning
+    temperature: 0.3
+    max_tokens: 4096
+  vllm_llm_gemma3_4b_it:
+    _type: openai
+    api_key: "EMPTY"
+    base_url: "http://localhost:8080/v1"
+    model_name: google/gemma-3-4b-it
+    temperature: 0.3
+    max_tokens: 4096
+  nim_llm:
+    _type: nim
+    model_name: meta/llama-3.3-70b-instruct
+    temperature: 0.0
+
+workflow:
+  _type: reasoning_agent
+  llm_name: vllm_llm_phi4_mini_reasoning
+  augmented_fn: react_agent
+  verbose: true

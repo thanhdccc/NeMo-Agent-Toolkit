@@ -26,11 +26,11 @@ class GithubCreatePullModel(BaseModel):
     title: str = Field(description="Title of the pull request")
     body: str = Field(description="Description of the pull request")
     source_branch: str = Field(
-        validation_alias=AliasChoices("source_branch", "head"),
+        validation_alias=AliasChoices("source_branch"),
         description="The name of the branch where your changes are implemented."
     )
     target_branch: str = Field(
-        validation_alias=AliasChoices("target_branch", "base"),
+        validation_alias=AliasChoices("target_branch"),
         description="The name of the branch you want the changes pulled into."
     )
     assignees: list[str] | None = Field([],
