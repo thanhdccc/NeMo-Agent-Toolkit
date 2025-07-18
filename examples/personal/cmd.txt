@@ -1,0 +1,24 @@
+vllm serve "google/gemma-3-4b-it" --port 8080 --max_model_len 32784
+
+cd
+cd Documents/NeMo-Agent-Toolkit/
+source .venv/bin/activate
+
+# Start local sandbox server
+cd
+cd Documents/NeMo-Agent-Toolkit/src/aiq/tool/code_execution/local_sandbox
+./start_local_sandbox.sh
+
+# MCP start server
+cd
+cd Documents/NeMo-Agent-Toolkit/
+aiq mcp --config_file examples/personal/src/personal/configs/config_mcp.yml
+
+cd
+cd Documents/NeMo-Agent-Toolkit/
+uv pip install -e examples/personal
+aiq serve --config_file=examples/personal/configs/config.yml
+
+cd
+cd Documents/NeMo-Agent-Toolkit/external/aiqtoolkit-opensource-ui/
+npm run dev

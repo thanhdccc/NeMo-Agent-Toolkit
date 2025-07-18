@@ -86,27 +86,27 @@ async def create_pull_request_async(config: GithubCreatePullConfig, builder: Bui
             pr_response.raise_for_status()
             pr_number = pr_response.json()['number']
             
-            assignees_response = None # Initialize response variables
+            assignees_response = None
             reviewers_response = None
 
             # Add assignees if provided
-            if pr_model.assignees:                      # <-- MODIFIED
+            if pr_model.assignees:
                 assignees_url = f'https://api.github.com/repos/{config.repo_name}/issues/{pr_number}/assignees'
-                assignees_data = {'assignees': pr_model.assignees}  # <-- MODIFIED
+                assignees_data = {'assignees': pr_model.assignees}
                 assignees_response = await client.request("POST", assignees_url, json=assignees_data, headers=headers)
                 assignees_response.raise_for_status()
 
             # Request reviewers if provided
-            if pr_model.reviewers:                      # <-- MODIFIED
+            if pr_model.reviewers:
                 reviewers_url = f'https://api.github.com/repos/{config.repo_name}/pulls/{pr_number}/requested_reviewers'
-                reviewers_data = {'reviewers': pr_model.reviewers}  # <-- MODIFIED
+                reviewers_data = {'reviewers': pr_model.reviewers}
                 reviewers_response = await client.request("POST", reviewers_url, json=reviewers_data, headers=headers)
                 reviewers_response.raise_for_status()
 
             results.append({
                 'pull_request': pr_response.json(),
-                'assignees': assignees_response.json() if assignees_response else None, # <-- MODIFIED
-                'reviewers': reviewers_response.json() if reviewers_response else None, # <-- MODIFIED
+                'assignees': assignees_response.json() if assignees_response else None,
+                'reviewers': reviewers_response.json() if reviewers_response else None,
             })
 
         return json.dumps(results)
